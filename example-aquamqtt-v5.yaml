@@ -1,0 +1,304 @@
+external_components:
+  - source:
+      type: git
+      url: https://github.com/YOUR_GITHUB_USER/YOUR_AQUAMQTT_REPO
+      ref: main
+    components: [aquamqtt]
+
+esphome:
+  name: aquamqtt-v5
+  friendly_name: AquaMQTT V5
+  min_version: 2026.9.0
+
+esp32:
+  board: arduino_nano_esp32
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  # Keep the logger off the hardware UARTs used by AquaMQTT.
+  hardware_uart: USB_SERIAL_JTAG
+
+# Initial setup is done through the fallback access point.
+# Connect to "AquaMQTT V5 Setup" and open the captive portal to enter
+# the normal Wi-Fi credentials.
+wifi:
+  ap:
+    ssid: "AquaMQTT V5 Setup"
+    password: "aquamqtt-setup"
+
+captive_portal:
+
+api:
+
+ota:
+  - platform: esphome
+    password: "CHANGE-ME-OTA-PASSWORD"
+
+# Two independent ESPHome UART buses. The V5 MITM needs both sides.
+# These GPIOs are the defaults documented for the V5 AquaMQTT hardware:
+# MAIN: RX=5, TX=6
+# HMI:  RX=7, TX=8
+uart:
+  - id: main_uart
+    baud_rate: 38400
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    rx_pin: GPIO5
+    tx_pin: GPIO6
+    rx_buffer_size: 256
+
+  - id: hmi_uart
+    baud_rate: 38400
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    rx_pin: GPIO7
+    tx_pin: GPIO8
+    rx_buffer_size: 256
+
+aquamqtt:
+  id: aquamqtt
+  mode: mitm
+
+  main_uart_id: main_uart
+  hmi_uart_id: hmi_uart
+
+  # The V5 board uses GPIOs 9/10 to control the two level shifters.
+  main_enable_tx_pin: GPIO9
+  hmi_enable_tx_pin: GPIO10
+
+  # The component also needs to know the physical UART pins so it can
+  # temporarily connect the ESP32 UART TX signal to both sides of the
+  # one-wire level shifter during transmission.
+  main_rx_pin: GPIO5
+  main_tx_pin: GPIO6
+  hmi_rx_pin: GPIO7
+  hmi_tx_pin: GPIO8
+
+  frame_silence_ms: 4
+  one_wire_uart: true
+
+# -----------------------
+# V5 protocol measurements
+# -----------------------
+sensor:
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: water_temperature
+    name: "Water Temperature"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: water_temperature_min
+    name: "Water Temperature Minimum"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: water_temperature_max
+    name: "Water Temperature Maximum"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: compressor_outlet_temperature
+    name: "Compressor Outlet Temperature"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: compressor_outlet_temperature_min
+    name: "Compressor Outlet Temperature Minimum"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: compressor_outlet_temperature_max
+    name: "Compressor Outlet Temperature Maximum"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: air_inlet_temperature
+    name: "Air Inlet Temperature"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: air_inlet_temperature_min
+    name: "Air Inlet Temperature Minimum"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: air_inlet_temperature_max
+    name: "Air Inlet Temperature Maximum"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: evaporator1_temperature
+    name: "Evaporator 1 Temperature"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: evaporator2_temperature
+    name: "Evaporator 2 Temperature"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: evaporator3_temperature
+    name: "Evaporator 3 Temperature"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: setpoint
+    name: "Water Temperature Setpoint"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle1_count
+    name: "Cycle 1 Count"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle2_count
+    name: "Cycle 2 Count"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle3_count
+    name: "Cycle 3 Count"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle4_count
+    name: "Cycle 4 Count"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle5_count
+    name: "Cycle 5 Count"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle6_count
+    name: "Cycle 6 Count"
+
+  # Diagnostics
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: frames_received
+    name: "AquaMQTT Frames Received"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: frames_relayed
+    name: "AquaMQTT Frames Relayed"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: crc_errors
+    name: "AquaMQTT CRC Errors"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: invalid_frames
+    name: "AquaMQTT Invalid Frames"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: rx_bytes
+    name: "AquaMQTT RX Bytes"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: tx_bytes
+    name: "AquaMQTT TX Bytes"
+
+# -----------------------
+# V5 binary state
+# -----------------------
+binary_sensor:
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: input_i1
+    name: "Input I1"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: input_i2
+    name: "Input I2"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: heating_active
+    name: "Heating Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle1_active
+    name: "Cycle 1 Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle2_active
+    name: "Cycle 2 Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle3_active
+    name: "Cycle 3 Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle4_active
+    name: "Cycle 4 Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle5_active
+    name: "Cycle 5 Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: cycle6_active
+    name: "Cycle 6 Active"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: connected
+    name: "Heat Pump Connected"
+
+# -----------------------
+# V5 identification
+# -----------------------
+text_sensor:
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: serial_number
+    name: "Heat Pump Serial Number"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: controller_model
+    name: "Controller Model"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: power_board_version
+    name: "Power Board Version"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: hmi_version
+    name: "HMI Firmware Version"
+
+  - platform: aquamqtt
+    aquamqtt_id: aquamqtt
+    type: hmi_model
+    name: "HMI Model"
+
+# -----------------------
+# V5 control
+# -----------------------
+select:
+  - platform: aquamqtt
+    id: operation_mode
+    aquamqtt_id: aquamqtt
+    name: "Operation Mode"
