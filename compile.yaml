@@ -1,0 +1,33 @@
+name: ESPHome CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ESPHome
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install esphome
+
+      - name: Validate configuration
+        run: esphome config example-aquamqtt-v5.yaml
+
+      - name: Compile firmware
+        run: esphome compile example-aquamqtt-v5.yaml
